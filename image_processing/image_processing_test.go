@@ -70,3 +70,25 @@ func TestResize(t *testing.T) {
 	assert.Equal(t, 500, resizedImg.Bounds().Dx())
 	assert.Equal(t, 500, resizedImg.Bounds().Dy())
 }
+
+func TestRotate(t *testing.T) {
+	img := createTestImage(100, 100)
+	angle := 45.0
+
+	rotatedImg := Rotate(img, angle)
+
+	assert.NotNil(t, rotatedImg, "Rotate() returned nil")
+	assert.NotEqual(t, img.Bounds(), rotatedImg.Bounds(), "Rotate() did not change the image dimensions")
+}
+
+func TestBlur(t *testing.T) {
+	img := createTestImage(100, 100)
+	sigma := 1.0
+
+	blurredImg := Blur(img, sigma)
+
+	assert.NotNil(t, blurredImg, "Blur() returned nil")
+	originalColor := img.At(50, 50)
+	blurredColor := blurredImg.At(50, 50)
+	assert.NotEqual(t, originalColor, blurredColor, "Blur() did not change the pixel color")
+}

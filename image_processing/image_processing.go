@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/disintegration/imaging"
 	"github.com/nfnt/resize"
 )
 
@@ -69,4 +70,14 @@ func Resize(img image.Image) image.Image {
 	newHeight := uint(500)
 	resizedImg := resize.Resize(newWidth, newHeight, img, resize.Lanczos3)
 	return resizedImg
+}
+
+func Rotate(img image.Image, angle float64) image.Image {
+	rotatedImg := imaging.Rotate(img, angle, color.Transparent)
+	return rotatedImg
+}
+
+func Blur(img image.Image, sigma float64) image.Image {
+	blurredImg := imaging.Blur(img, sigma)
+	return blurredImg
 }

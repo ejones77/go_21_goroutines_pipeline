@@ -24,6 +24,8 @@ type Job struct {
 	ReadTime   float64
 	ResizeTime float64
 	GrayTime   float64
+	RotateTime float64
+	BlurTime   float64
 	WriteTime  float64
 }
 
@@ -153,6 +155,34 @@ func convertToGrayscale(input <-chan Job) <-chan Job {
 	return out
 }
 
+func rotateImage(input <-chan Job, angle float64) <-chan Job {
+	out := make(chan Job)
+	go func() {
+		for job := range input {
+			start := time.Now()
+			job.Image = imageprocessing.Rotate(job.Image, angle)
+			job.RotateTime = time.Since(start).Seconds()
+			out <- job
+		}
+		close(out)
+	}()
+	return out
+}
+
+func blurImage(input <-chan Job, sigma float64) <-chan Job {
+	out := make(chan Job)
+	go func() {
+		for job := range input {
+			start := time.Now()
+			job.Image = imageprocessing.Blur(job.Image, sigma)
+			job.BlurTime = time.Since(start).Seconds()
+			out <- job
+		}
+		close(out)
+	}()
+	return out
+}
+
 func saveImage(input <-chan Job) <-chan Job {
 	out := make(chan Job)
 	go func() {
@@ -191,7 +221,9 @@ func main() {
 	channel1 := loadImage(imagePaths, processedPaths)
 	channel2 := resize(channel1)
 	channel3 := convertToGrayscale(channel2)
-	writeResults := saveImage(channel3)
+	channel4 := rotateImage(channel3, 90)
+	channel5 := blurImage(channel4, 1.5)
+	writeResults := saveImage(channel5)
 
 	var jobs []Job
 	for job := range writeResults {
