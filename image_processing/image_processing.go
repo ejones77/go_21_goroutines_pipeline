@@ -1,43 +1,51 @@
 package imageprocessing
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
+	"log"
 	"os"
 
 	"github.com/nfnt/resize"
 )
 
-func ReadImage(path string) image.Image {
+func ReadImage(path string) (image.Image, error) {
 	inputFile, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		if errors.Is(err, os.ErrNotExist) {
+			log.Printf("File not found: %s", path)
+		}
+		return nil, fmt.Errorf("failed to open image file %s: %w", path, err)
 	}
 	defer inputFile.Close()
 
 	// Decode the image
 	img, _, err := image.Decode(inputFile)
 	if err != nil {
-		fmt.Println(path)
-		panic(err)
+		return nil, fmt.Errorf("failed to decode image %s: %w", path, err)
 	}
-	return img
+	return img, nil
 }
 
-func WriteImage(path string, img image.Image) {
+func WriteImage(path string, img image.Image) error {
 	outputFile, err := os.Create(path)
 	if err != nil {
-		panic(err)
+		if errors.Is(err, os.ErrPermission) {
+			log.Printf("Permission denied: %s", path)
+		}
+		return fmt.Errorf("failed to create output file %s: %w", path, err)
 	}
 	defer outputFile.Close()
 
 	// Encode the image to the new file
 	err = jpeg.Encode(outputFile, img, nil)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to encode image %s: %w", path, err)
 	}
+	return nil
 }
 
 func Grayscale(img image.Image) image.Image {

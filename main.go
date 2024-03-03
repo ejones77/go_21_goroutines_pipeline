@@ -11,6 +11,7 @@ type Job struct {
 	InputPath string
 	Image     image.Image
 	OutPath   string
+	Error     error
 }
 
 func loadImage(paths []string) <-chan Job {
@@ -21,7 +22,11 @@ func loadImage(paths []string) <-chan Job {
 		for _, p := range paths {
 			job := Job{InputPath: p,
 				OutPath: strings.Replace(p, "images/", "images/output/", 1)}
-			job.Image = imageprocessing.ReadImage(p)
+			job.Image, job.Error = imageprocessing.ReadImage(p)
+			if job.Error != nil {
+				fmt.Println("Error reading image:", job.Error)
+				continue
+			}
 			out <- job
 		}
 		close(out)
@@ -59,7 +64,12 @@ func saveImage(input <-chan Job) <-chan bool {
 	out := make(chan bool)
 	go func() {
 		for job := range input { // Read from the channel
-			imageprocessing.WriteImage(job.OutPath, job.Image)
+			err := imageprocessing.WriteImage(job.OutPath, job.Image)
+			if err != nil {
+				fmt.Println("Error writing image:", err)
+				out <- false
+				continue
+			}
 			out <- true
 		}
 		close(out)
@@ -69,10 +79,10 @@ func saveImage(input <-chan Job) <-chan bool {
 
 func main() {
 
-	imagePaths := []string{"images/image1.jpeg",
-		"images/image2.jpeg",
-		"images/image3.jpeg",
-		"images/image4.jpeg",
+	imagePaths := []string{"images/cat_1.jpg",
+		"images/cat_2.jpg",
+		"images/cat_3.jpg",
+		"images/cat_4.jpg",
 	}
 
 	channel1 := loadImage(imagePaths)
