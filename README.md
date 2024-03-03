@@ -9,6 +9,9 @@ This repository is a fork of an image processing pipeline set up by [code-heim](
 - Including error handling for image inputs and outputs, specifically checking for file-not-found and permission errors. 
 - Added pictures of cats to test the image processing pipeline
 - Added unit tests for critical components
+- Added benchmarking for each step in the pipeline, adding time features to the Job struct
+- writing results to JSON, checking for unique filepaths before appending.
+
 
 ## Photo Credits
 
